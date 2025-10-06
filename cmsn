@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Chúc mừng sinh nhật Như Ý</title>
+<style>
+  body{
+    margin:0; height:100vh; overflow:hidden;
+    background:#2d79ac;
+    font-family:sans-serif;
+    color:#fff;
+  }
+  canvas{position:absolute;inset:0;}
+
+  /* BÁNH */
+  #cake{
+    position:absolute;
+    top:60%;left:50%;transform:translateX(-50%);
+    font-size:90px;opacity:0;transition:opacity 2s ease;
+    cursor:pointer;user-select:none;
+  }
+  /* NHẮC NHỞ */
+  #text{
+    position:absolute;
+    top:75%;left:50%;transform:translateX(-50%);
+    opacity:0;transition:opacity 1s ease;
+    color:white;font-weight:600;
+  }
+
+  /* OVERLAY */
+  .overlay{
+    position:fixed;inset:0;
+    background:rgba(0,0,0,.45);
+    backdrop-filter:blur(2px);
+    display:none;align-items:center;justify-content:center;
+    opacity:0;transition:opacity .35s ease;
+    padding:20px;
+  }
+  .overlay.show{display:flex;opacity:1;}
+
+  /* THƯ */
+  .letter{
+    width:min(500px,90vw);
+    background:#5a8af1;color:#ffffff;
+    border-radius:16px;
+    box-shadow:0 20px 60px rgb(255, 255, 255);
+    transform:scale(.9) translateY(20px);
+    opacity:0;
+    transition:transform .5s ease,opacity .5s ease;
+    overflow:hidden;
+  }
+  .overlay.show .letter{transform:scale(1) translateY(0);opacity:1;}
+
+  /* NẮP THƯ */
+  .flap{
+    background:linear-gradient(180deg,#ffe3f1,#ffd1ec);
+    height:100px;clip-path:polygon(0 0,100% 0,50% 100%);
+    transform-origin:top;
+    animation:openFlap 1s forwards;
+  }
+  @keyframes openFlap{0%{transform:rotateX(0);}100%{transform:rotateX(180deg);}}
+
+  .paper{padding:20px;}
+  .title{color:#fcfafb;margin:0 0 10px;font-size:20px;}
+  .msg{line-height:1.6;font-size:16px;}
+
+  .actions{text-align:right;margin-top:10px;}
+  .btn{padding:8px 12px;border:none;border-radius:8px;cursor:pointer;}
+  .btn.primary{background:#040677;color:#fff;}
+  .btn:hover{filter:brightness(1.05);}
+  .close{position:absolute;top:10px;right:12px;background:rgba(255,255,255,.7);
+         border-radius:10px;padding:5px 10px;cursor:pointer;}
+img {
+    width: 250px;
+    height: 250px;
+    float: right;
+    top: 50%;
+}
+</style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<img src="cmsn.jpg" ></img>
+<div id="cake" title="Bấm vào để mở thư">🎂</div>
+<h6 id="text">Nhấn vào bánh đi</h6>
+
+<div id="overlay" class="overlay">
+  <div class="letter">
+    <div class="close" id="closeBtn">✕</div>
+    <div class="flap"></div>
+    <div class="paper">
+      <h2 class="title">dear Như Ý 💌</h2>
+      <p class="msg">
+        Chúc Ý sinh nhật vui vẻ nhaaa<br/>
+        Mong tuổi 19 của m tràn đầy niềm vui,
+        sức khỏe và may mắn. học tập suôn sẻ và đạt nhiều học bổng nha.✨
+      </p>
+      <div class="actions">
+        <button class="btn primary" id="closeBtn2">Đóng thư</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+function resize(){canvas.width=innerWidth;canvas.height=innerHeight;}
+resize();addEventListener('resize',resize);
+const textStr="Chúc mừng sinh nhật Như Ý";
+function makeParticles(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.font="bold "+Math.max(48,Math.min(96,canvas.width/18))+"px sans-serif";
+  ctx.textAlign="center";ctx.textBaseline="middle";
+  ctx.fillStyle="white";
+  ctx.fillText(textStr,canvas.width/2,canvas.height/2);
+  const img=ctx.getImageData(0,0,canvas.width,canvas.height);
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const arr=[];const gap=4;
+  for(let y=0;y<canvas.height;y+=gap){
+    for(let x=0;x<canvas.width;x+=gap){
+      const i=(y*canvas.width+x)*4;
+      if(img.data[i+3]>120){
+        arr.push({x:Math.random()*canvas.width,y:canvas.height+Math.random()*200,
+                  tx:x,ty:y,vx:0,vy:0});
+      }
+    }
+  }return arr;
+}
+let p=makeParticles();
+addEventListener('resize',()=>{p=makeParticles();});
+function anim(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle="rgba(255,255,255,.95)";
+  p.forEach(pt=>{
+    const dx=pt.tx-pt.x,dy=pt.ty-pt.y;
+    pt.vx+=dx*0.02;pt.vy+=dy*0.02;pt.vx*=0.9;pt.vy*=0.9;
+    pt.x+=pt.vx;pt.y+=pt.vy;
+    ctx.fillRect(pt.x,pt.y,2,2);
+  });
+  requestAnimationFrame(anim);
+}
+anim();
+
+const cake=document.getElementById('cake');
+const hint=document.getElementById('text');
+setTimeout(()=>{cake.style.opacity=1;setTimeout(()=>hint.style.opacity=1,500);},5000);
+
+const overlay=document.getElementById('overlay');
+const closeBtn=document.getElementById('closeBtn');
+const closeBtn2=document.getElementById('closeBtn2');
+function openLetter(){overlay.classList.add('show');}
+function closeLetter(){overlay.classList.remove('show');}
+cake.addEventListener('click',openLetter);
+hint.addEventListener('click',openLetter);
+closeBtn.addEventListener('click',closeLetter);
+closeBtn2.addEventListener('click',closeLetter);
+overlay.addEventListener('click',e=>{if(e.target===overlay)closeLetter();});
+document.addEventListener('keydown',e=>{if(e.key==="Escape")closeLetter();});
+</script>
+</body>
+</html>
